@@ -1,0 +1,6 @@
+# Put in the [env] section of a folder's mise.toml (e.g. ~/Code/work/mise.toml).
+# Applies to that folder and everything beneath it.
+[env]
+BROWSER = "{{env.HOME}}/.local/share/ff-open/bin/open"
+_.path = ["{{env.HOME}}/.local/share/ff-open/bin"]
+FIREFOX_PROFILE = "Work"
