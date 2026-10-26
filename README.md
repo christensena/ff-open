@@ -21,12 +21,17 @@ When every argument is an `http://` or `https://` URL and `FIREFOX_PROFILE` is
 set, it runs:
 
 ```
-/Applications/Firefox.app/Contents/MacOS/firefox -P "$FIREFOX_PROFILE" --new-tab <urls>
+/Applications/Firefox.app/Contents/MacOS/firefox \
+  --profile "$HOME/Library/Application Support/Firefox/Profiles/$FIREFOX_PROFILE" \
+  --new-tab <urls>
 ```
 
 If that profile is already running, Firefox opens the tab in it; otherwise it
-starts the profile. Anything else (`open .`, `open file.pdf`, `open -a Slack`,
-any flags) is passed unchanged to `/usr/bin/open`.
+starts the profile. If the profile folder doesn't exist it exits with an error
+rather than letting Firefox create a new profile there.
+
+Anything else (`open .`, `open file.pdf`, `open -a Slack`, any flags) is passed
+unchanged to `/usr/bin/open`.
 
 ### Not covered
 
@@ -52,7 +57,7 @@ Then add to the `[env]` section of each folder's `mise.toml` (see
 [env]
 BROWSER = "{{env.HOME}}/.local/share/ff-open/bin/open"
 _.path = ["{{env.HOME}}/.local/share/ff-open/bin"]
-FIREFOX_PROFILE = "Work"
+FIREFOX_PROFILE = "abcd1234.Profile 2"
 ```
 
 New config files need `mise trust`. The setting applies to the folder and
@@ -60,11 +65,18 @@ everything beneath it.
 
 ## Firefox profiles
 
-`FIREFOX_PROFILE` is a profile `Name` from
-`~/Library/Application Support/Firefox/profiles.ini`:
+`FIREFOX_PROFILE` is a profile's folder name under
+`~/Library/Application Support/Firefox/Profiles/`. It works with both legacy
+profiles and those made with Firefox's profile switcher (which aren't all in
+`profiles.ini`, so `-P <name>` can't reach them).
+
+To find a profile's folder, open `about:profiles` in a window of that profile
+and look at "Root Directory" for the one marked as in use. Or list switcher
+profiles by name:
 
 ```sh
-grep '^Name=' ~/Library/Application\ Support/Firefox/profiles.ini
+cd ~/Library/Application\ Support/Firefox/Profile\ Groups
+for db in *.sqlite; do sqlite3 -readonly "file:$db?immutable=1" "SELECT name, path FROM Profiles"; done
 ```
 
 ## Check it

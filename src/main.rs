@@ -1,10 +1,12 @@
 //! Stands in for /usr/bin/open and $BROWSER: web URLs go to the Firefox profile
-//! named by FIREFOX_PROFILE, everything else passes through to /usr/bin/open.
+//! folder named by FIREFOX_PROFILE, everything else passes through to /usr/bin/open.
 use std::env;
 use std::os::unix::process::CommandExt;
+use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 const FIREFOX: &str = "/Applications/Firefox.app/Contents/MacOS/firefox";
+const PROFILES_DIR: &str = "Library/Application Support/Firefox/Profiles";
 
 fn is_web_url(arg: &str) -> bool {
     arg.starts_with("http://") || arg.starts_with("https://")
@@ -16,8 +18,17 @@ fn main() {
 
     if let Some(profile) = profile {
         if !args.is_empty() && args.iter().all(|a| is_web_url(a)) {
+            let home = env::var("HOME").unwrap_or_default();
+            let profile_path = PathBuf::from(home).join(PROFILES_DIR).join(&profile);
+            // Firefox would create a fresh profile at a missing path.
+            if !profile_path.is_dir() {
+                eprintln!("ff-open: no Firefox profile at {}", profile_path.display());
+                std::process::exit(1);
+            }
             let spawned = Command::new(FIREFOX)
-                .args(["-P", &profile, "--new-tab"])
+                .arg("--profile")
+                .arg(&profile_path)
+                .arg("--new-tab")
                 .args(&args)
                 .stdin(Stdio::null())
                 .stdout(Stdio::null())

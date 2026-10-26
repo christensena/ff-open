@@ -3,4 +3,5 @@
 [env]
 BROWSER = "{{env.HOME}}/.local/share/ff-open/bin/open"
 _.path = ["{{env.HOME}}/.local/share/ff-open/bin"]
-FIREFOX_PROFILE = "Work"
+# Folder name under ~/Library/Application Support/Firefox/Profiles/
+FIREFOX_PROFILE = "abcd1234.Profile 2"
